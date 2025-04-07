@@ -7,21 +7,26 @@
 
 import React from 'react';
 import type {PropsWithChildren} from 'react';
+import messaging from '@react-native-firebase/messaging';
 import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
+    Button, Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    useColorScheme,
+    View,
 } from 'react-native';
 
 import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
+  Klaviyo,
+  Location,
+  Profile,
+  ProfileProperty,
+} from 'klaviyo-react-native-sdk';
+
+import {
+  Colors
 } from 'react-native/Libraries/NewAppScreen';
 
 type SectionProps = PropsWithChildren<{
@@ -61,16 +66,7 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the reccomendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-  const safePadding = '5%';
+  const safePadding = '10%';
 
   return (
     <View style={backgroundStyle}>
@@ -80,29 +76,55 @@ function App(): React.JSX.Element {
       />
       <ScrollView
         style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
-          <Header/>
-        </View>
         <View
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
             paddingBottom: safePadding,
+            paddingTop: safePadding,
           }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
+          <Section title="Sample RN Project">
+              {'Basic functionality to test Klaviyo SDK with badge count. \n\n' +
+                  'Note: You must initialize the SDK on every new app session. \n\n' +
+                  "Replace 'YOUR_COMPANY_API_KEY' with your company id in App.tsx"}
           </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+
+            <Section title="Sample RN Project">
+                <Button
+                    title="Initialize"
+                    onPress={() => {
+                        Klaviyo.initialize('XNhKEQ');
+                    }}
+                />
+                <Button
+                    title="Create a random profile"
+                    onPress={() => {
+                        setProfile().then();
+                    }}
+                />
+                <Button
+                    title="Request permission & get push token"
+                    onPress={() =>
+                        requestUserPermission().then(() => {
+                            fetchAndSetPushToken().then();
+                        })
+                    }
+                />
+                <Button
+                    title="Set badge count to some number"
+                    onPress={() => {
+                        const getRandomDigit = () => Math.floor(Math.random() * 10);
+                        const randomDigit = getRandomDigit();
+                        console.log('Setting badge count to a random digit:', randomDigit);
+                        Klaviyo.setBadgeCount(randomDigit);
+                    }}
+                />
+                <Button
+                    title="Reset badge count to 0"
+                    onPress={() => {
+                        Klaviyo.setBadgeCount(0);
+                    }}
+                />
+            </Section>
         </View>
       </ScrollView>
     </View>
@@ -129,3 +151,135 @@ const styles = StyleSheet.create({
 });
 
 export default App;
+
+export const setProfile = async () => {
+    try {
+        const myLocation: Location = {
+            address1: generateRandomAddress().street,
+            address2: 'apt 123',
+            city: generateRandomAddress().city,
+            country: 'USA',
+            latitude: 99,
+            longitude: 99,
+            region: generateRandomAddress().city,
+            zip: generateRandomAddress().zipCode,
+            timezone: 'EST',
+        };
+
+        const myProperties: Record<ProfileProperty, any> = {
+            [ProfileProperty.FIRST_NAME]: generateRandomName(5),
+            [ProfileProperty.LAST_NAME]: generateRandomName(5),
+            [ProfileProperty.ADDRESS1]: generateRandomAddress().street,
+            [ProfileProperty.ADDRESS2]: 'Apt 456',
+            [ProfileProperty.TITLE]: 'Mr.',
+            [ProfileProperty.ORGANIZATION]: 'ABC Inc.',
+            [ProfileProperty.CITY]: 'Cityville',
+            [ProfileProperty.REGION]: 'Regionville',
+            [ProfileProperty.COUNTRY]: 'Countryland',
+            [ProfileProperty.ZIP]: '12345',
+            [ProfileProperty.IMAGE]: 'profile.jpg',
+            [ProfileProperty.LATITUDE]: 40.7128,
+            [ProfileProperty.LONGITUDE]: -74.006,
+        };
+
+        const myProfile: Profile = {
+            email: generateRandomEmails(),
+            phoneNumber: generateRandomPhoneNumber(),
+            externalId: generateRandomName(8),
+            firstName: generateRandomName(7),
+            lastName: generateRandomName(4),
+            organization: generateRandomName(5),
+            title: generateRandomName(6),
+            image: generateRandomName(5),
+            location: myLocation,
+            properties: myProperties,
+        };
+        console.log('Creating profile:', myProfile)
+        Klaviyo.setProfile(myProfile);
+    } catch (e: any) {
+        console.log(e.message, e.code);
+    }
+};
+
+export const generateRandomName = (length: number) => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let randomName = '';
+
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        randomName += characters.charAt(randomIndex);
+    }
+
+    return randomName;
+};
+
+export const generateRandomPhoneNumber = () => {
+    const getRandomDigit = () => Math.floor(Math.random() * 10);
+    const lineNumber = `${getRandomDigit()}${getRandomDigit()}${getRandomDigit()}${getRandomDigit()}`;
+
+    return `+1${234}${567}${lineNumber}`;
+};
+
+export const generateRandomAddress = () => {
+    const streets = ['Main St', 'Elm St', 'Oak Ave', 'Cedar Ln', 'Maple Rd'];
+    const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Miami'];
+    const states = ['CA', 'NY', 'TX', 'FL', 'IL'];
+    const zipCodes = ['10001', '90001', '60601', '77001', '33101'];
+
+    const randomStreet = streets[Math.floor(Math.random() * streets.length)];
+    const randomCity = cities[Math.floor(Math.random() * cities.length)];
+    const randomState = states[Math.floor(Math.random() * states.length)];
+    const randomZipCode = zipCodes[Math.floor(Math.random() * zipCodes.length)];
+
+    return {
+        street: randomStreet,
+        city: randomCity,
+        state: randomState,
+        zipCode: randomZipCode,
+    };
+};
+
+export const generateRandomEmails = () => {
+    const chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
+    let string = '';
+    for (let ii = 0; ii < 15; ii++) {
+        string += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return string + '@gmail.com';
+};
+
+export const requestUserPermission = async () => {
+    let isAuthorized = false;
+
+    if (Platform.OS === 'ios') {
+        const iOsAuthStatus = await messaging().requestPermission();
+        isAuthorized =
+            iOsAuthStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+            iOsAuthStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    }
+
+    if (isAuthorized) {
+        console.log('User has notification permissions enabled.');
+    } else {
+        console.log('User has notification permissions disabled');
+    }
+};
+
+export const fetchAndSetPushToken = async () => {
+    try {
+        let deviceToken: string | null = null;
+        if (Platform.OS === 'android') {
+            deviceToken = await messaging().getToken();
+            console.log('FCM Token:', deviceToken);
+        } else {
+            deviceToken = await messaging().getAPNSToken();
+            console.log('APNs Token:', deviceToken);
+        }
+
+        if (deviceToken != null && deviceToken.length > 0) {
+            Klaviyo.setPushToken(deviceToken!);
+        }
+    } catch (error) {
+        console.error('Error in fetchAndSetPushToken:', error);
+    }
+};

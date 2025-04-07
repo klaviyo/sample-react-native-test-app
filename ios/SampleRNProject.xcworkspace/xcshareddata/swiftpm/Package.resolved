@@ -1,0 +1,24 @@
+{
+  "originHash" : "9a1d253a68cf626e25ddfa9525423d3298f141234130ed94a07d5d5fd0253ef7",
+  "pins" : [
+    {
+      "identity" : "anycodable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Flight-School/AnyCodable",
+      "state" : {
+        "revision" : "862808b2070cd908cb04f9aafe7de83d35f81b05",
+        "version" : "0.6.7"
+      }
+    },
+    {
+      "identity" : "klaviyo-swift-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/klaviyo/klaviyo-swift-sdk",
+      "state" : {
+        "revision" : "0c1084e52f169decd97cf7de3a1280abcf4922c0",
+        "version" : "4.2.1"
+      }
+    }
+  ],
+  "version" : 3
+}
