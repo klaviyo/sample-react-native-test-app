@@ -92,7 +92,7 @@ function App(): React.JSX.Element {
                 <Button
                     title="Initialize"
                     onPress={() => {
-                        Klaviyo.initialize('XNhKEQ');
+                        Klaviyo.initialize('YOUR_COMPANY_API_KEY');
                     }}
                 />
                 <Button
